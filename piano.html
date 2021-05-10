@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="initial-scale=1.0" />
+  <title></title>
+  <link rel="stylesheet" href="style.css" type="text/css">
+<script type="text/javascript">
+
+var play_note = [];
+var chords_note =[];
+var question=0;
+var chords_question=["CM7(9)a","B7(#9,b13)a","Bb7(9,13)a","A7(#9,b13)a","Dm7(9)b","G7(9,13)a",
+                    "C#7(#9,b13)b","CM7(9)a","F#7(#9,b13)b","FM7(9,13)b","E7(b9)b","comp"];
+var note_number = { 59:"B2",60:"C3",61:"Db3",62:"D3",63:"Eb3",64:"E3",65:"F3",66:"Gb3",67:"G3",68:"Ab3",69:"A3",
+                    70:"Bb3",71:"B3",72:"C4",73:"Db4",74:"D4",75:"Eb4",76:"E4",77:"F4",78:"Gb4",79:"G4",80:"Ab4",
+                    81:"A4",82:"Bb4",83:"B4",84:"C5"
+};
+
+function chords_setting(){
+  var chord_name="erorr";
+switch(chords_question[question]){
+  case "CM7(9)a":chords_note.splice(0,0,71,74,76,79);chord_name="CM7(9)";
+  break;
+  case "B7(#9,b13)a":chords_note.splice(0,0,69,74,75,79);chord_name="B7(#9,b13)";
+  break;
+  case "Bb7(9,13)a":chords_note.splice(0,0,68,72,74,79);chord_name="Bb7(9,13)";
+  break;
+  case "A7(#9,b13)a":chords_note.splice(0,0,67,72,73,77);chord_name="A7(#9,b13)";
+  break;
+  case "Dm7(9)b":chords_note.splice(0,0,65,69,72,76);chord_name="Dm7(9)";
+  break;
+  case "G7(9,13)a":chords_note.splice(0,0,65,69,71,76);chord_name="G7(9,13)";
+  break;
+  case "C#7(#9,b13)b":chords_note.splice(0,0,65,69,71,76);chord_name="C#7(#9,b13)";
+  break;
+  case "F#7(#9,b13)b":chords_note.splice(0,0,70,74,76,81);chord_name="F#7(#9,b13)";
+  break;
+  case "FM7(9,13)b":chords_note.splice(0,0,69,74,76,79);chord_name="FM7(9,13)";
+  break;
+  case "E7(b9)b":chords_note.splice(0,0,68,71,74,79);chord_name="E7(b9)";
+  break;
+  case "Am7(9)b":chords_note.splice(0,0,72,76,79,83);chord_name="Am7(9)";
+  break;
+  case "A7(#9,b13)b":chords_note.splice(0,0,73,76,79,83);chord_name="A7(#9,b13)";
+  break;
+  case "comp":chord_name="コンプリート";
+  break;
+}
+note_mark();
+document.getElementById('chord').innerHTML =chord_name;
+}
+
+function array_equal() {
+  if (!Array.isArray(chords_note))    return false;
+  if (!Array.isArray(play_note))    return false;
+  if (chords_note.length != play_note.length) return false;
+  for (var i = 0, n = chords_note.length; i < n; ++i) {
+    if (chords_note[i] !== play_note[i]) return false;
+  }
+  return true;
+}
+
+function sleep(msec) {
+   return new Promise(function(resolve) {
+
+      setTimeout(function() {resolve()}, msec);
+
+   })
+}
+
+async　function Compare(){
+  if(array_equal()){
+  if(question<=chords_question.length){
+    question++;
+    chords_note=[];
+    play_note=[];
+    document.querySelector('.correct').style.display ='block';
+    await sleep(100);
+    document.querySelector('.correct').style.display ='none';
+    chords_setting();
+    }
+  }
+}
+function compareFunc(a, b) {
+  return a - b;
+}
+
+
+  function on_note(note) {
+        if(chords_note.indexOf(note) >= 0){
+          if(play_note.indexOf(note) == -1){
+          　play_note.push(note);
+          play_note.sort(compareFunc);
+          Compare();
+          }
+          document.getElementById(note_number[note]).style.backgroundColor = "#0066FF";
+        }else{
+          document.getElementById(note_number[note]).style.backgroundColor = "#FF6600";
+        }
+  }
+
+  function note_mark(){
+    var note=59;
+    console.log(chords_note.length);
+    for(let i=0;i< Object.keys(note_number).length;i++){
+      document.getElementById(note_number[i+note]).innerHTML ='';
+      console.log("note_mark1");
+    }
+    for(let i=0;i< Object.keys(note_number).length;i++){
+      for(j=0;j<chords_note.length;j++){
+        if(note+i==chords_note[j]){
+          document.getElementById(note_number[i+note]).innerHTML ='<div class="on">●</div>';
+
+        }
+      }
+    }
+  }
+
+  function off_note(note) {
+  var class_name=document.getElementById(note_number[note]);
+  if(class_name.className=="white"){document.getElementById(note_number[note]).style.backgroundColor = "white";}
+  else if(class_name.className=="black"){document.getElementById(note_number[note]).style.backgroundColor = "black";}
+  console.log("aa"+class_name.className);
+  }
+
+  window.onload = function learnSet(){
+      chords_setting();
+  }
+
+var midi;
+
+//通信成功時
+function success(midiAccess){
+	midi = midiAccess;
+	console.log("MIDI READY");
+    setInputs(midiAccess);
+}
+
+
+//通信失敗時
+function failure(msg){
+	console.log("MIDI FAILED - " + msg);
+}
+
+//MIDIAccessオブジェクトのInputsを取得してイベントに対して関数を渡す
+function setInputs(midiAccess){
+	var inputs = midiAccess.inputs;
+	inputs.forEach(function(key,port){
+        console.log("[" + key.state + "] manufacturer:" + key.manufacturer + " / name:" + key.name + " / port:" + port);
+		key.onmidimessage = onMidiMessage;
+	});
+}
+
+//MIDIデバイスからメッセージが送られる時に実行
+function onMidiMessage(event){
+
+    console.log(event);
+    var note;
+    var onoff;
+
+          onoff=event.data[0]
+          note=event.data[1]
+          console.log(onoff);
+	console.log(note);
+  if(onoff==144){on_note(note)}else if(onoff==128){off_note(note)}
+}
+
+//MIDIデバイスへアクセスする
+   navigator.requestMIDIAccess().then(success, failure);
+
+
+  </script>
+</head>
+
+<body>
+  <div class="chords">
+    <figcaption class="absolute"><img class="correct" src="correct.png"></figcaption>
+ <h1 id="chord">kkk</h1>
+  </div>
+
+  <div class="piano">
+    <div id="B2" class="white"></div>
+    <div id="C3" class="white"></div>
+    <div id="Db3" class="black"></div>
+    <div id="D3" class="white"></div>
+    <div id="Eb3"class="black"></div>
+    <div id="E3" class="white"></div>
+    <div id="F3" class="white"></div>
+    <div id="Gb3" class="black"></div>
+    <div id="G3" class="white"></div>
+    <div id="Ab3" class="black"></div>
+    <div id="A3" class="white"></div>
+    <div id="Bb3"class="black"></div>
+    <div id="B3" class="white"></div>
+    <div id="C4" class="white"></div>
+    <div id="Db4" class="black"></div>
+    <div id="D4" class="white"></div>
+    <div id="Eb4"class="black"></div>
+    <div id="E4" class="white"></div>
+    <div id="F4" class="white"></div>
+    <div id="Gb4" class="black"></div>
+    <div id="G4" class="white"></div>
+    <div id="Ab4" class="black"></div>
+    <div id="A4" class="white"></div>
+    <div id="Bb4"class="black"></div>
+    <div id="B4" class="white"></div>
+    <div id="C5" class="white"></div>
+  </div>
+</body>
+
+</html>
